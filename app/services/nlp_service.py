@@ -59,17 +59,25 @@ class NLPService:
         prompt = f"""
         Analyze the emotional tone of the following customer text.
         Respond ONLY with a JSON object containing 'label' (POSITIVE, NEUTRAL, NEGATIVE, or MIXED) and a 'score' (0.0 to 1.0, representing confidence or intensity).
+        DO NOT include any explanation or additional text. Return ONLY the JSON object.
 
-        Example for POSITIVE: {{"label": "POSITIVE", "score": 0.95}}
-        Example for NEGATIVE: {{"label": "NEGATIVE", "score": 0.88}}
-        Example for MIXED: {{"label": "MIXED", "score": 0.7}}
+        Example responses:
+        {{"label": "POSITIVE", "score": 0.95}}
+        {{"label": "NEGATIVE", "score": 0.88}}
+        {{"label": "MIXED", "score": 0.7}}
 
         Text: "{text}"
-        JSON Response:
         """
         groq_response = self._call_groq_model(prompt, temperature=0.0) # Low temp for structured output
         try:
-            sentiment_data = json.loads(groq_response)
+            # Clean the response to ensure we only have the JSON part
+            json_str = groq_response.strip()
+            if "Here is the JSON response:" in json_str:
+                json_str = json_str.split("Here is the JSON response:")[1].strip()
+            if "{" in json_str and "}" in json_str:
+                json_str = json_str[json_str.find("{"):json_str.rfind("}")+1]
+            
+            sentiment_data = json.loads(json_str)
             label = sentiment_data.get("label", "UNKNOWN").upper()
             score = float(sentiment_data.get("score", 0.0))
             # Basic validation
@@ -179,20 +187,37 @@ class NLPService:
 
         return False
 
-    def classify_grievance(self, text: str) -> tuple[str, str, str]:
+    def classify_grievance(self, text: str) -> tuple[str, list[str], str]:
         """
-        Classifies grievance text, suggests routing, and assigns priority using Groq.
+        Classifies grievance text, suggests routing to multiple departments if needed, and assigns priority using Groq.
         We ask Groq for a JSON output to easily parse it.
         """
         prompt = f"""
         You are a grievance management expert. Classify the following customer grievance,
-        suggest a suitable routing department, and assign a priority (Low, Medium, High).
+        suggest one or more suitable routing departments (if the issue spans multiple departments),
+        and assign a priority (Low, Medium, High).
         Respond ONLY with a JSON object like this:
         {{
             "classification": "...",
-            "suggested_routing": "...",
+            "suggested_routing": ["Department1", "Department2", ...],
             "priority": "..."
         }}
+
+        Consider these departments:
+        - Billing Department (for payment, charges, invoices)
+        - Technical Support (for service issues, outages, technical problems)
+        - Customer Service (for general inquiries, account issues)
+        - Product Support (for product-specific issues)
+        - Legal Department (for legal concerns, compliance issues)
+        - Safety Department (for safety hazards, security concerns)
+        - Quality Assurance (for service quality issues)
+        - Network Operations (for network-related issues)
+        - Sales Department (for sales-related inquiries)
+        - Compliance Department (for regulatory compliance issues)
+
+        If the grievance involves multiple departments, list all relevant ones.
+        For example, if a customer reports a billing error that also involves a technical issue,
+        the routing should include both Billing Department and Technical Support.
 
         Grievance Text: "{text}"
         """
@@ -200,15 +225,18 @@ class NLPService:
         try:
             parsed_response = json.loads(groq_response)
             classification = parsed_response.get("classification", "Unclassified")
-            routing = parsed_response.get("suggested_routing", "General Support")
+            routing = parsed_response.get("suggested_routing", ["General Support"])
+            # Ensure routing is always a list
+            if isinstance(routing, str):
+                routing = [routing]
             priority = parsed_response.get("priority", "Low")
             return classification, routing, priority
         except json.JSONDecodeError:
             logging.error(f"Failed to parse JSON from Groq for grievance: {groq_response}")
-            return "Parsing Error", "Unknown", "Low"
+            return "Parsing Error", ["Unknown"], "Low"
         except Exception as e:
             logging.error(f"Unexpected error in classify_grievance: {e}")
-            return "Error", "Unknown", "Low"
+            return "Error", ["Unknown"], "Low"
 
     def summarize_text(self, text: str) -> str:
         """Summarizes the given text using Groq."""

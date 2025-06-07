@@ -14,14 +14,97 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # --- Streamlit Page Setup ---
 st.set_page_config(
-    page_title="Unified AI Customer Care System",
+    page_title="AI Customer Care System",
     page_icon="🤖",
     layout="wide", # Use wide layout for better space utilization
     initial_sidebar_state="expanded"
 )
 
-st.title("🤖 Unified AI Customer Care System")
-st.markdown("---")
+# Custom CSS for better styling
+st.markdown("""
+    <style>
+    .main {
+        padding: 2rem;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 4rem;
+        white-space: pre-wrap;
+        background-color: #f0f2f6;
+        border-radius: 4px 4px 0 0;
+        gap: 1rem;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .stButton>button {
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+    }
+    .stTextArea>div>div>textarea {
+        background-color: #f8f9fa;
+    }
+    .stRadio>div {
+        flex-direction: row;
+        gap: 2rem;
+    }
+    .stRadio>div>div {
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 4px;
+    }
+    .stRadio>div>div[data-baseweb="radio"] {
+        background-color: #4CAF50;
+    }
+    .chat-message {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-message.user {
+        background-color: #e3f2fd;
+    }
+    .chat-message.assistant {
+        background-color: #f5f5f5;
+    }
+    .chat-message .content {
+        margin-top: 0.5rem;
+    }
+    .info-box {
+        background-color: #e8f5e9;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    .warning-box {
+        background-color: #fff3e0;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    .success-box {
+        background-color: #e8f5e9;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- User Persona & Impact Section (Sidebar) ---
 st.sidebar.header("User Persona & Pain Points")
@@ -55,229 +138,245 @@ st.sidebar.info("💡 **Tip:** Ensure your FastAPI backend is running at `" + BA
 
 # --- Tabs for Each Problem Statement ---
 tab1, tab2, tab3 = st.tabs([
-    "🗣️ AI-Powered L1 Automation (Chat/Voice)",
+    "💬 AI-Powered L1 Automation",
     "📝 Smart Grievance Management",
     "📞 Call Intelligence via NLP"
 ])
 
 # --- Tab 1: AI-Powered L1 Automation (Chatbot) ---
 with tab1:
-    st.header("AI-Powered L1 Automation")
-    st.markdown("Our intelligent bot handles basic customer queries autonomously. It understands **emotional tone**, adapts responses, and predicts when human intervention is needed. Supports both text and conceptual voice input.")
+    st.markdown("""
+        <div class='info-box'>
+            <h3>🤖 Intelligent Customer Support</h3>
+            <p>Our AI assistant understands emotional tone, adapts responses, and predicts when human intervention is needed.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Initialize chat history in session state
+    # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        # FIX: Ensure initial assistant message has 'response_content' and other expected keys
         st.session_state.messages.append({
             "role": "assistant",
-            "response_content": "Hello! I am your AI assistant. How can I help you today?", # Changed 'content' to 'response_content'
-            "sentiment_label": "NEUTRAL",  # Added default
-            "sentiment_score": 1.0,        # Added default
-            "detected_intent": "greeting", # Added default
-            "escalate_to_human": False,    # Added default
-            "refinement_notes": "Initial greeting message from AI assistant.", # Added default
-            "processed_message": "Hello!", # Added default
-            "is_voice_input": False        # Added default
+            "response_content": "Hello! I'm your AI assistant. How can I help you today?",
+            "sentiment_label": "NEUTRAL",
+            "sentiment_score": 1.0,
+            "detected_intent": "greeting",
+            "escalate_to_human": False,
+            "refinement_notes": "Initial greeting message from AI assistant.",
+            "processed_message": "Hello!",
+            "is_voice_input": False
         })
 
-    # Display chat messages from history
-    # The chat messages now include the bot's conversational reply AND its AI insights
-    for message_entry in st.session_state.messages:
-        with st.chat_message(message_entry["role"]):
-            # For the user's message, just display the content
-            if message_entry["role"] == "user":
-                st.markdown(message_entry["content"])
-            # For the assistant's message, display the main response and then the insights expander
+    # Display chat messages with better styling
+    for message in st.session_state.messages:
+        with st.container():
+            if message["role"] == "user":
+                st.markdown(f"""
+                    <div class='chat-message user'>
+                        <strong>You:</strong>
+                        <div class='content'>{message.get('content', '')}</div>
+                    </div>
+                """, unsafe_allow_html=True)
             else:
-                # Use .get() with a default value to prevent KeyError if 'response_content' is missing
-                st.markdown(message_entry.get("response_content", "Error: No response content found.")) # The actual conversational reply
+                st.markdown(f"""
+                    <div class='chat-message assistant'>
+                        <strong>AI Assistant:</strong>
+                        <div class='content'>{message.get('response_content', '')}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Display analysis information in a cleaner format
+                if message.get("sentiment_label") != "NEUTRAL":
+                    sentiment_color = "#4CAF50" if message.get("sentiment_label") == "POSITIVE" else "#f44336"
+                    st.markdown(f"""
+                        <div style='margin-left: 1rem; margin-top: 0.5rem;'>
+                            <span style='color: {sentiment_color};'>
+                                🎯 Emotional Tone: {message.get('sentiment_label')} 
+                                (Confidence: {message.get('sentiment_score', 0.0):.2f})
+                            </span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                
+                if message.get("detected_intent"):
+                    st.markdown(f"""
+                        <div style='margin-left: 1rem; margin-top: 0.5rem;'>
+                            🎯 Detected Intent: {message.get('detected_intent')}
+                        </div>
+                    """, unsafe_allow_html=True)
+                
+                if message.get("escalate_to_human"):
+                    st.markdown("""
+                        <div class='warning-box'>
+                            🚨 Auto-Escalation Predicted! This query is flagged for human agent review.
+                        </div>
+                    """, unsafe_allow_html=True)
 
-                # Display AI analysis in an expander, always at the bottom of the bot's turn
-                with st.expander("🤖 AI Insights (Click to expand)"):
-                    # Use .get() for all keys accessed from message_entry to be safe
-                    if message_entry.get("is_voice_input"):
-                         st.markdown(f"**Transcribed Input (Whisper Conceptual):** `{message_entry.get('processed_message', 'N/A')}`")
-                    
-                    st.markdown(f"**Detected Emotional Tone (Sentiment):** <span style='background-color:#ADD8E6; padding: 5px; border-radius: 5px; font-weight: bold;'>{message_entry.get('sentiment_label', 'N/A')}</span> (Confidence: {message_entry.get('sentiment_score', 0.0):.2f})", unsafe_allow_html=True)
-                    st.markdown(f"**Detected Intent:** <span style='background-color:#90EE90; padding: 5px; border-radius: 5px;'>`{message_entry.get('detected_intent', 'N/A')}`</span>", unsafe_allow_html=True)
-                    if message_entry.get("escalate_to_human"):
-                        st.warning("🚨 **Auto-Escalation Predicted!** This query is flagged for human agent review. A human agent will take over shortly.")
-                    st.info(f"**Generative Response Refinement Notes (Conceptual for Personalization):** *{message_entry.get('refinement_notes', 'No specific refinement notes.')}*")
-
-
-    # --- Input Section ---
-    input_method = st.radio("Choose input method:", ("Text Input", "Simulate Voice Input"), key="input_method_radio")
-
-    user_input_text_to_process = "" # This will hold the actual text sent to the backend
+    # Input section with better styling
+    st.markdown("---")
+    st.markdown("### 💭 Send a Message")
     
-    # Initialize a dummy value for the text area for the simulated voice input
-    if 'simulated_voice_input_value' not in st.session_state:
-        st.session_state.simulated_voice_input_value = "I have recently purchased a gas cylinder, but it is not working properly. I am furious with your service. I did not expect this from you guys. When I try to use it, I can instantly smell gas leaking, but the burner does not turn on. This is a hazard as my house can catch fire."
+    input_method = st.radio(
+        "Choose input method:",
+        ("Text Input", "Simulate Voice Input"),
+        key="input_method_radio",
+        horizontal=True
+    )
 
-    # Place the input widgets at the very end of the main column for continuous input feel
+    user_input_text_to_process = ""
+    
     if input_method == "Text Input":
-        user_input_text_to_process = st.chat_input(
-            "Type your message here...", # This is the placeholder
-            key="chat_text_input_final", # Unique key for this input
-            # Removed the duplicate placeholder argument here
+        user_input_text_to_process = st.text_area(
+            "Type your message:",
+            placeholder="How can I help you today?",
+            height=100
         )
-    else: # Simulate Voice Input
-        st.info("💡 **Conceptual Voice Input:** In a real scenario, this would be an audio recording/upload that Whisper transcribes. For this demo, please type the *transcribed text* that Whisper *would* produce.")
+    else:
+        if 'simulated_voice_input_value' not in st.session_state:
+            st.session_state.simulated_voice_input_value = "I have recently purchased a gas cylinder, but it is not working properly. I am furious with your service. I did not expect this from you guys. When I try to use it, I can instantly smell gas leaking, but the burner does not turn on. This is a hazard as my house can catch fire."
         
-        simulated_voice_text_display = st.text_area(
-            "Type simulated transcribed voice input here:",
-            key="chat_voice_input_area_final", # Unique key
-            height=80,
-            value=st.session_state.simulated_voice_input_value # Control value via session state
+        st.markdown("""
+            <div class='info-box'>
+                <p>🎤 This is a simulated voice input. In a production environment, this would use speech-to-text.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        user_input_text_to_process = st.text_area(
+            "Simulated Voice Input:",
+            value=st.session_state.simulated_voice_input_value,
+            height=100
         )
-        
-        # Button to trigger submission for simulated voice
-        if st.button("Send Simulated Voice Input"):
-            user_input_text_to_process = simulated_voice_text_display # Get current text from text area
-            # Clear the text area after sending the message
-            st.session_state.simulated_voice_input_value = ""
-            st.rerun() # Rerun to clear the text area immediately
 
-
-    # --- Message Processing Logic ---
-    # Only process if there's actual new input
-    if user_input_text_to_process:
-        is_voice_input_flag = (input_method == "Simulate Voice Input")
-
-        # Add user message to chat history
-        display_message = f"**User ({'Voice Input (Simulated)' if is_voice_input_flag else 'Text Input'}):** {user_input_text_to_process}"
-        st.session_state.messages.append({"role": "user", "content": display_message})
-        # No need to redraw immediately here, st.rerun() will handle it
-
-        with st.chat_message("assistant"): # This is a temporary placeholder during processing
-            with st.spinner("Analyzing and generating response..."):
+    if st.button("Send Message", key="send_message"):
+        if user_input_text_to_process:
+            with st.spinner("Processing your message..."):
                 try:
-                    # Make API call to backend's chat endpoint
                     payload = {
                         "message": user_input_text_to_process,
                         "user_id": "demo_user_123",
-                        "is_voice_input": is_voice_input_flag,
-                        "simulated_voice_text": user_input_text_to_process # Send the actual text input for processing
+                        "is_voice_input": input_method == "Simulate Voice Input",
+                        "simulated_voice_text": user_input_text_to_process
                     }
+                    
                     response = requests.post(
                         f"{BACKEND_URL}/l1_automation/chat",
                         json=payload,
-                        timeout=90 # Increased timeout for potential Groq calls and model loading
+                        timeout=90
                     )
-                    response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
+                    response.raise_for_status()
                     chat_data = response.json()
 
-                    # Extract all data for storing in session state
-                    bot_response_content = chat_data.get('response', "I couldn't generate a response.")
-                    sentiment_label = chat_data.get('sentiment', {}).get('label', 'N/A')
-                    sentiment_score = chat_data.get('sentiment', {}).get('score', 0.0)
-                    detected_intent = chat_data.get('detected_intent', 'N/A')
-                    escalate = chat_data.get('escalate_to_human', False)
-                    refinement_notes = chat_data.get('generative_refinement_notes', 'No specific refinement notes.')
-                    processed_message_from_backend = chat_data.get('processed_message', user_input_text_to_process) # What backend actually processed
-
-                    # Add bot's full response (including all AI analysis) to session state
-                    # This single entry will be used by the `for` loop to draw the assistant's message
                     st.session_state.messages.append({
                         "role": "assistant",
-                        "response_content": bot_response_content,
-                        "sentiment_label": sentiment_label,
-                        "sentiment_score": sentiment_score,
-                        "detected_intent": detected_intent,
-                        "escalate_to_human": escalate,
-                        "refinement_notes": refinement_notes,
-                        "processed_message": processed_message_from_backend,
-                        "is_voice_input": is_voice_input_flag
+                        "response_content": chat_data.get('response', "I couldn't generate a response."),
+                        "sentiment_label": chat_data.get('sentiment', {}).get('label', 'N/A'),
+                        "sentiment_score": chat_data.get('sentiment', {}).get('score', 0.0),
+                        "detected_intent": chat_data.get('detected_intent', 'N/A'),
+                        "escalate_to_human": chat_data.get('escalate_to_human', False),
+                        "refinement_notes": chat_data.get('generative_refinement_notes', ''),
+                        "processed_message": chat_data.get('processed_message', user_input_text_to_process),
+                        "is_voice_input": input_method == "Simulate Voice Input"
                     })
-                    st.rerun() # Trigger a rerun to display the new messages properly
-
-                except requests.exceptions.ConnectionError:
-                    error_msg = f"Cannot connect to backend at {BACKEND_URL}. Please ensure the FastAPI backend is running."
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "response_content": "Oops! I'm having trouble connecting to my brain right now. Please ensure the backend is running and try again later."})
-                    st.rerun()
-                except requests.exceptions.Timeout:
-                    error_msg = "The request timed out. The backend might be slow to respond or models are still loading. Please try again."
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "response_content": "It's taking a bit longer than expected. Please try again or rephrase your question."})
-                    st.rerun()
-                except requests.exceptions.RequestException as e:
-                    error_msg = f"Error processing your request: {e}. Please check the backend logs for details."
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "response_content": f"An error occurred while processing your request: {e}. Please try again."})
-                    st.rerun()
-                except json.JSONDecodeError:
-                    error_msg = "Error decoding response from backend. Received malformed data. This might happen if Groq does not return valid JSON."
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "response_content": "I received an unreadable response from the server. Please try again."})
                     st.rerun()
                 except Exception as e:
-                    error_msg = f"An unexpected error occurred: {e}"
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "response_content": "An unexpected error occurred. Please try again later."})
-                    st.rerun()
+                    st.error(f"Error: {str(e)}")
+        else:
+            st.warning("Please enter a message to send.")
 
-
-    st.markdown("---")
-    st.subheader("💡 Unique Features Showcase (L1 Automation):")
-    st.markdown("""
-    * **Emotional Tone Detection:** Real-time sentiment analysis of customer messages enables truly adaptive responses. The bot responds empathetically based on the detected tone.
-    * **Adaptive Responses:** The bot adjusts its conversational tone and suggestions based on detected customer sentiment, fostering empathy and improving user experience.
-    * **Auto-Escalation Prediction:** Intelligent detection of when a human agent is needed, based on factors like extreme negative sentiment, complex intent, or explicit requests. Flagged queries provide full context to human agents for seamless handover.
-    * **Generative Response Refinement (Conceptual for Personalization):** The bot's ability to provide more personalized responses by leveraging user profiles and interaction history. This would typically be orchestrated by a LangChain agent accessing a knowledge base or CRM.
-    * **Multimodal Input (Conceptual):** Designed to integrate voice input (via OpenAI's Whisper) alongside text for broader accessibility. The demo showcases this conceptually through simulated transcription.
-    """)
-
-# --- Tab 2: Smart Grievance Management (No changes needed here for this request) ---
+# --- Tab 2: Smart Grievance Management ---
 with tab2:
-    st.header("Smart Grievance Management")
-    st.markdown("Our system provides real-time complaint classification and intelligent routing, significantly speeding up redressal and improving efficiency.")
+    st.markdown("""
+        <div class='info-box'>
+            <h3>📝 Smart Grievance Management</h3>
+            <p>Our AI system automatically classifies and routes customer complaints for faster resolution.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    grievance_input = st.text_area("Enter customer grievance details:", height=180, key="grievance_text_area",
-                                   value="My recent internet bill has an incorrect charge of $50 for an unlimited data plan I never subscribed to. This is unacceptable and needs to be resolved urgently! Account: 987654")
+    grievance_text = st.text_area(
+        "Enter your grievance:",
+        placeholder="Describe your issue here...",
+        height=150
+    )
 
-    if st.button("Classify & Route Grievance"):
-        if grievance_input:
-            with st.spinner("Classifying and routing grievance..."):
+    if st.button("Submit Grievance", key="submit_grievance"):
+        if grievance_text:
+            with st.spinner("Analyzing grievance..."):
                 try:
                     response = requests.post(
                         f"{BACKEND_URL}/grievance_management/grievance",
-                        json={"grievance_text": grievance_input, "customer_id": "cust_001"},
+                        json={"grievance_text": grievance_text, "customer_id": "cust_001"},
                         timeout=30
                     )
                     response.raise_for_status()
                     grievance_data = response.json()
 
-                    st.success("Grievance Classified Successfully!")
-                    st.markdown(f"**📝 Classification:** `{grievance_data['classification']}`")
-                    st.markdown(f"**➡️ Suggested Routing:** `{grievance_data['suggested_routing']}`")
-                    st.markdown(f"**⚡ Priority:** `{grievance_data['priority']}`")
+                    st.success("Grievance Analysis Complete!")
+                    
+                    # Create a 2-column layout for classification and priority
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Classification", grievance_data.get('classification', 'N/A'))
+                    with col2:
+                        priority = grievance_data.get('priority', 'N/A')
+                        priority_color = {
+                            'High': '#f44336',
+                            'Medium': '#ff9800',
+                            'Low': '#4CAF50'
+                        }.get(priority, '#666')
+                        st.markdown(f"""
+                            <div style='text-align: center;'>
+                                <h3>Priority</h3>
+                                <p style='color: {priority_color}; font-size: 1.5rem; font-weight: bold;'>{priority}</p>
+                            </div>
+                        """, unsafe_allow_html=True)
 
-                    st.markdown("---")
-                    st.subheader("💡 Before vs. After Impact (Grievance Management):")
-                    st.markdown("""
-                    * **Before (Manual):** Grievances often face delays due to manual reading, misrouting, and inefficient assignment, leading to increased customer frustration and potential churn.
-                    * **After (AI-Powered):** Instant classification and automated routing ensure complaints reach the correct department with appropriate priority immediately, drastically improving resolution time and customer satisfaction. This frees up human agents to focus on complex, high-priority cases.
-                    """)
+                    # Display departments in a more appealing way
+                    departments = grievance_data.get('suggested_routing', [])
+                    if departments:
+                        st.markdown("### 📋 Assigned Departments")
+                        st.markdown("""
+                            <div class='info-box'>
+                                <p>The following departments have been assigned to handle your grievance:</p>
+                            </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Create a grid of department cards
+                        dept_cols = st.columns(min(3, len(departments)))
+                        for i, dept in enumerate(departments):
+                            with dept_cols[i % 3]:
+                                st.markdown(f"""
+                                    <div style='
+                                        background-color: #e3f2fd;
+                                        padding: 1rem;
+                                        border-radius: 8px;
+                                        margin: 0.5rem 0;
+                                        text-align: center;
+                                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                    '>
+                                        <h4 style='margin: 0; color: #1976d2;'>{dept}</h4>
+                                    </div>
+                                """, unsafe_allow_html=True)
 
-                except requests.exceptions.ConnectionError:
-                    st.error(f"Cannot connect to backend at {BACKEND_URL}. Please ensure the FastAPI backend is running.")
-                except requests.exceptions.Timeout:
-                    st.error("The request timed out. The backend might be slow to respond.")
-                except requests.exceptions.RequestException as e:
-                    st.error(f"Error processing grievance: {e}. Please check the backend logs for details.")
-                except json.JSONDecodeError:
-                    st.error("Error decoding response from backend.")
+                        # Add explanation for multiple departments
+                        if len(departments) > 1:
+                            st.markdown("""
+                                <div class='info-box' style='margin-top: 1rem;'>
+                                    <p>💡 <strong>Multiple Departments Assigned:</strong> Your grievance involves multiple aspects that require attention from different departments. Each department will handle their specific area of expertise to ensure a comprehensive resolution.</p>
+                                </div>
+                            """, unsafe_allow_html=True)
+
                 except Exception as e:
-                    st.error(f"An unexpected error occurred: {e}")
+                    st.error(f"Error: {str(e)}")
         else:
-            st.warning("Please enter some grievance text to classify.")
+            st.warning("Please enter a grievance to analyze.")
 
 # --- Tab 3: Call Intelligence via NLP (No changes needed here for this request) ---
 with tab3:
-    st.header("Call Intelligence via NLP")
-    st.markdown("Leverage natural language processing to summarize and tag support call transcripts for efficient training and quality analysis. This module directly integrates and enhances your team member's existing work.")
+    st.markdown("""
+        <div class='info-box'>
+            <h3>📞 Call Intelligence via NLP</h3>
+            <p>Analyze call transcripts to extract insights, sentiment, and key information.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
     sample_transcript = """
     Agent: Hello, thank you for calling Tech Support. How may I help you today?
@@ -291,51 +390,86 @@ with tab3:
     Agent: I've created ticket #7890. You'll receive updates. Regarding compensation, once service is restored, you can visit our website or chat with us to discuss credit options.
     Customer: Fine. Thank you.
     """
-    transcript_input = st.text_area("Paste Call Transcript here:", value=sample_transcript, height=300, key="transcript_text_area")
 
-    if st.button("Summarize & Tag Call"):
+    transcript_input = st.text_area(
+        "Paste Call Transcript:",
+        value=sample_transcript,
+        height=300
+    )
+
+    if st.button("Analyze Call", key="analyze_call"):
         if transcript_input:
-            with st.spinner("Analyzing transcript (summarizing, tagging, sentiment)..."):
+            with st.spinner("Analyzing transcript..."):
                 try:
                     response = requests.post(
                         f"{BACKEND_URL}/call_intelligence/call_nlp",
-                        json={"transcript_text": transcript_input, "call_id": f"call_{datetime.now().strftime('%Y%m%d%H%M%S')}"},
-                        timeout=90 # Extended timeout for summarization, which can be resource-intensive
+                        json={
+                            "transcript_text": transcript_input,
+                            "call_id": f"call_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                        },
+                        timeout=90
                     )
                     response.raise_for_status()
                     call_nlp_data = response.json()
 
                     st.success("Call Analysis Complete!")
-                    st.subheader("📝 Summary:")
-                    st.write(call_nlp_data.get('summary', 'No summary generated.'))
+                    
+                    # Summary Section
+                    st.markdown("### 📝 Call Summary")
+                    st.markdown(f"""
+                        <div class='success-box'>
+                            {call_nlp_data.get('summary', 'No summary generated.')}
+                        </div>
+                    """, unsafe_allow_html=True)
 
-                    st.subheader("🏷️ Tags & Key Entities:")
-                    st.write(", ".join(call_nlp_data.get('tags', ['No tags extracted.'])))
+                    # Tags Section
+                    st.markdown("### 🏷️ Tags & Key Entities")
+                    tags = call_nlp_data.get('tags', [])
+                    if tags:
+                        tag_cols = st.columns(4)
+                        for i, tag in enumerate(tags):
+                            with tag_cols[i % 4]:
+                                st.markdown(f"""
+                                    <div style='background-color: #e3f2fd; padding: 0.5rem; border-radius: 4px; margin: 0.25rem;'>
+                                        {tag}
+                                    </div>
+                                """, unsafe_allow_html=True)
 
-                    st.subheader("😊 Overall Call Sentiment:")
-                    sentiment_label = call_nlp_data.get('sentiment_overall', {}).get('label', 'N/A')
-                    sentiment_score = call_nlp_data.get('sentiment_overall', {}).get('score', 0.0)
-                    st.info(f"**Sentiment:** **{sentiment_label}** (Confidence: {sentiment_score:.2f})")
+                    # Sentiment Section
+                    st.markdown("### 😊 Overall Call Sentiment")
+                    sentiment = call_nlp_data.get('sentiment_overall', {})
+                    sentiment_label = sentiment.get('label', 'N/A')
+                    sentiment_score = sentiment.get('score', 0.0)
+                    
+                    sentiment_color = {
+                        'POSITIVE': '#4CAF50',
+                        'NEGATIVE': '#f44336',
+                        'NEUTRAL': '#2196F3',
+                        'MIXED': '#FF9800'
+                    }.get(sentiment_label, '#666')
+                    
+                    st.markdown(f"""
+                        <div style='text-align: center; padding: 1rem; background-color: {sentiment_color}20; border-radius: 8px;'>
+                            <h3 style='color: {sentiment_color};'>Sentiment: {sentiment_label}</h3>
+                            <p style='font-size: 1.2rem;'>Confidence: {sentiment_score:.2f}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
 
-                    st.markdown("---")
-                    st.subheader("💡 Impact for Support Teams (Call Intelligence):")
+                    # Impact Section
+                    st.markdown("### 💡 Impact for Support Teams")
                     st.markdown("""
-                    * **Efficient Training:** Agents can quickly review summarized calls and relevant tags to understand common issues and best practices, accelerating onboarding.
-                    * **Quality Analysis:** Managers can easily spot trends, identify areas for improvement in agent performance, and ensure compliance. Automated sentiment tracking provides a pulse on customer satisfaction across calls.
-                    * **Faster Audits:** Automated tagging reduces manual effort in categorizing and auditing calls, saving significant time.
-                    * **Personalized Training:** Identify specific call types an agent struggles with, enabling targeted training interventions.
-                    """)
+                        <div class='info-box'>
+                            <ul>
+                                <li><strong>Efficient Training:</strong> Quick review of summarized calls and relevant tags</li>
+                                <li><strong>Quality Analysis:</strong> Track trends and identify improvement areas</li>
+                                <li><strong>Faster Audits:</strong> Automated tagging reduces manual effort</li>
+                                <li><strong>Personalized Training:</strong> Target specific call types for agent improvement</li>
+                            </ul>
+                        </div>
+                    """, unsafe_allow_html=True)
 
-                except requests.exceptions.ConnectionError:
-                    st.error(f"Cannot connect to backend at {BACKEND_URL}. Please ensure the FastAPI backend is running.")
-                except requests.exceptions.Timeout:
-                    st.error("The request timed out. The backend might be slow to respond or models are still loading.")
-                except requests.exceptions.RequestException as e:
-                    st.error(f"Error processing call transcript: {e}. Please check the backend logs for details.")
-                except json.JSONDecodeError:
-                    st.error("Error decoding response from backend.")
                 except Exception as e:
-                    st.error(f"An unexpected error occurred: {e}")
+                    st.error(f"Error: {str(e)}")
         else:
             st.warning("Please paste a call transcript to analyze.")
 

@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.services.nlp_service import nlp_service
 import logging
+from typing import List
 
 router = APIRouter()
 
@@ -14,14 +15,14 @@ class GrievanceRequest(BaseModel):
 
 class GrievanceResponse(BaseModel):
     classification: str
-    suggested_routing: str
+    suggested_routing: List[str]
     priority: str
 
 @router.post("/grievance", response_model=GrievanceResponse)
 async def manage_grievance(request: GrievanceRequest):
     """
     Handles Smart Grievance Management.
-    Classifies complaints, suggests routing, and assigns priority based on content.
+    Classifies complaints, suggests routing to multiple departments if needed, and assigns priority based on content.
     """
     try:
         logging.info(f"Received grievance from customer {request.customer_id}: '{request.grievance_text}'")
